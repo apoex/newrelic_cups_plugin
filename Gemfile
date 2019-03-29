@@ -2,5 +2,6 @@
 
 source 'https://rubygems.org'
 
-gem 'awesome_print'
+gem 'dante'
+gem 'newrelic_plugin'
 gem 'server_log_parser'

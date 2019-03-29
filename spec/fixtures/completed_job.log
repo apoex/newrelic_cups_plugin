@@ -1,0 +1,8 @@
+I [22/Mar/2019:06:00:07 +0100] [Job 184499] Adding start banner page "none".
+I [22/Mar/2019:06:00:07 +0100] [Job 184499] Queued on "bromma_oki_es7131_res" by "wms".
+I [22/Mar/2019:06:00:07 +0100] [Job 184499] File of type application/pdf queued by "wms".
+I [22/Mar/2019:06:00:07 +0100] [Job 184499] Adding end banner page "none".
+I [22/Mar/2019:06:00:07 +0100] [Job 184499] Started filter /usr/lib/cups/filter/pdftopdf (PID 20325)
+I [22/Mar/2019:06:00:07 +0100] [Job 184499] Started filter /usr/lib/cups/filter/pdftops (PID 20326)
+I [22/Mar/2019:06:00:07 +0100] [Job 184499] Started backend /usr/lib/cups/backend/socket (PID 20327)
+I [22/Mar/2019:06:00:14 +0100] [Job 184499] Job completed.

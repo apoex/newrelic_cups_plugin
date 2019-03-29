@@ -16,7 +16,7 @@ class PrintJob
     \]\s
     (?<info>.*)
     \z
-  /x
+  /x.freeze
 
   def initialize(job_id)
     self.job_id = job_id
@@ -78,10 +78,10 @@ class PrintJob
         (?<user>.*)
       ".
       \z
-    /x
+    /x.freeze
 
-    COMPLETED_REGEX = /\AJob completed\./
-    STARTED_REGEX = /\AStarted backend\.*/
+    COMPLETED_REGEX = /\AJob completed\./.freeze
+    STARTED_REGEX = /\AStarted backend\.*/.freeze
 
     def initialize(match_data)
       self.log_level = match_data[:log_level]

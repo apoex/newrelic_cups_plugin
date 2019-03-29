@@ -1,0 +1,4 @@
+/config/newrelic_plugin.yml
+/log/*.log
+/run/*.pid
+/tmp
