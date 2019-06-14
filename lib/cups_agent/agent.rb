@@ -47,18 +47,20 @@ module CupsAgent
     # Gets log lines since last poll cycle.
     def log_data(path)
       @last_length ||= 0
+      # Do not report on first run
+      return '' if @last_length.zero?
+
       current_length = `wc -l "#{path}"`.split(' ').first.to_i
 
-      if current_length < @last_length
-        # File is rotated, reset `last_length` to start reading
-        # from the beginning of the rotated file.
-        @last_length = 0
-      end
-
+      # Check if file is rotated. If so, reset `last_length` to start reading
+      # from the beginning of the rotated file.
+      @last_length = 0 if current_length < @last_length
       read_length = current_length - @last_length
-      @last_length = current_length
+      return '' if read_length.zero?
 
-      `tail -n +#{@last_length + 1} "#{path}" | head -n #{read_length}`
+      data = `tail -n +#{@last_length + 1} "#{path}" | head -n #{read_length}`
+      @last_length = current_length
+      data
     end
 
     def check_params
