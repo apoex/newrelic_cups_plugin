@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'English'
+
 module CupsAgent
   # Cups agent implementation
   class Agent < NewRelic::Plugin::Agent::Base
@@ -12,6 +14,7 @@ module CupsAgent
 
     def setup_metrics
       @print_jobs = {}
+      check_params
     end
 
     def poll_cycle
@@ -32,12 +35,37 @@ module CupsAgent
     end
 
     def poll_data
-      File.foreach(error_log_path) do |line|
+      log_data(error_log_path).each_line do |line|
         PrintJob.match(line) do |job_id, match_data|
           @print_jobs[job_id] ||= PrintJob.new(job_id)
           @print_jobs[job_id].update(match_data)
         end
       end
+    end
+
+    # Gets log lines since last poll cycle.
+    def log_data(path)
+      @last_length ||= 0
+      current_length = `wc -l "#{path}"`.split(' ').first.to_i
+
+      if current_length < @last_length
+        # File is rotated, reset `last_length` to start reading
+        # from the beginning of the rotated file.
+        @last_length = 0
+      end
+
+      read_length = current_length - @last_length
+      @last_length = current_length
+
+      `tail -n +#{@last_length + 1} "#{path}" | head -n #{read_length}`
+    end
+
+    def check_params
+      raise ErrorLogPathNotSet if error_log_path.empty?
+
+      `test -e #{error_log_path}`
+
+      raise NoErrorLogFileFound(error_log_path) unless $CHILD_STATUS.success?
     end
 
     def report_jobs
@@ -62,6 +90,21 @@ module CupsAgent
       puts "Reporting queue size of #{queue_size}"
       report_metric "Printing/Queue size/#{host}",
                     'jobs', queue_size
+    end
+  end
+
+  # Exception class for error log file not found
+  class NoErrorLogFileFound < StandardError
+    def initialize(error_log_path)
+      super("The log file could not be found at: `#{error_log_path}`. " \
+            'Please ensure the full path is correct.')
+    end
+  end
+
+  # Exception class for log path not set
+  class ErrorLogPathNotSet < StandardError
+    def initialize
+      super('Please provide a path to the CUPS error log file.')
     end
   end
 end
