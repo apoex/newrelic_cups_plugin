@@ -7,12 +7,7 @@ module CupsAgent
     agent_version '0.1.0'
     agent_config_options :instance_name, :error_log_path
     agent_human_labels('CUPS') do
-      if instance_name.nil?
-        host = Socket.gethostname.sub(/\..*/, '')
-        "#{host}:631"
-      else
-        instance_name.to_s
-      end
+      instance_name || 'CUPS'
     end
 
     def setup_metrics
@@ -32,6 +27,10 @@ module CupsAgent
 
     private
 
+    def host
+      @host ||= Socket.gethostname.sub(/\..*/, '')
+    end
+
     def poll_data
       File.foreach(error_log_path) do |line|
         PrintJob.match(line) do |job_id, match_data|
@@ -43,32 +42,25 @@ module CupsAgent
 
     def report_jobs
       @print_jobs.each do |_job_id, job|
-        report_user_metrics(job)
-        report_queue_metrics(job)
+        report_job_metrics(job, 'host', host)
+        report_job_metrics(job, 'user', job.user)
+        report_job_metrics(job, 'queue', job.queue)
       end
     end
 
-    def report_user_metrics(job)
-      report_metric "Printing/Total time (user)/#{job.user}",
+    def report_job_metrics(job, type, value)
+      report_metric "Printing/Total time (#{type})/#{value}",
                     'seconds|job', job.total_time
-      report_metric "Printing/Queue time (user)/#{job.user}",
+      report_metric "Printing/Queue time (#{type})/#{value}",
                     'seconds|job', job.queue_time
-      report_metric "Printing/Print time (user)/#{job.user}",
-                    'seconds|job', job.print_time
-    end
-
-    def report_queue_metrics(job)
-      report_metric "Printing/Total time (queue)/#{job.user}/#{job.queue}",
-                    'seconds|job', job.total_time
-      report_metric "Printing/Queue time (queue)/#{job.user}/#{job.queue}",
-                    'seconds|job', job.queue_time
-      report_metric "Printing/Print time (queue)/#{job.user}/#{job.queue}",
+      report_metric "Printing/Print time (#{type})/#{value}",
                     'seconds|job', job.print_time
     end
 
     def report_queue_size
       queue_size = `lpstat -W not-completed | wc -l`.strip
-      report_metric 'Printing/Queue size/',
+      puts "Reporting queue size of #{queue_size}"
+      report_metric "Printing/Queue size/#{host}",
                     'jobs', queue_size
     end
   end
