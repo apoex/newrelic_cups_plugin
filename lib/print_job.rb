@@ -54,6 +54,10 @@ class PrintJob
     completed_at - started_at
   end
 
+  def completed?
+    !completed_at.nil?
+  end
+
   def to_s
     [job_id, user, total_time, queue_time, print_time,
      queued_at, completed_at, queue].join("\t")

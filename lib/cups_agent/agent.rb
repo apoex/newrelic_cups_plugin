@@ -24,7 +24,8 @@ module CupsAgent
         puts e.message
         return
       end
-      report_jobs
+      report_completed_jobs
+      cleanup_completed_jobs
       report_queue_size
     end
 
@@ -68,11 +69,20 @@ module CupsAgent
       raise NoErrorLogFileFound(error_log_path) unless $CHILD_STATUS.success?
     end
 
-    def report_jobs
+    def report_completed_jobs
       @print_jobs.each do |_job_id, job|
+        next unless job.completed?
+
+        puts "Reporting job metrics for: #{job}"
         report_job_metrics(job, 'host', host)
         report_job_metrics(job, 'user', job.user)
         report_job_metrics(job, 'queue', job.queue)
+      end
+    end
+
+    def cleanup_completed_jobs
+      @print_jobs.delete_if do |_job_id, job|
+        job.completed?
       end
     end
 
