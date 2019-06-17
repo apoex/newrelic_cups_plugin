@@ -47,8 +47,6 @@ module CupsAgent
     # Gets log lines since last poll cycle.
     def log_data(path)
       @last_length ||= 0
-      # Do not report on first run
-      return '' if @last_length.zero?
 
       current_length = `wc -l "#{path}"`.split(' ').first.to_i
 
