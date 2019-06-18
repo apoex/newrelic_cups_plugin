@@ -96,7 +96,7 @@ module CupsAgent
     end
 
     def report_queue_size
-      queue_size = `lpstat -W not-completed | wc -l`.strip
+      queue_size = `lpstat -u - | wc -l`.strip
       puts "Reporting queue size of #{queue_size}"
       report_metric "Printing/Queue size/#{host}",
                     'jobs', queue_size
